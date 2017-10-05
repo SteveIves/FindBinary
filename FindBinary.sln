@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.16
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{BBD0F5D1-1CC4-42FD-BA4C-A96779C64378}") = "FindBinary", "FindBinary.synproj", "{EEFC0A0A-E205-4316-B58D-8F93F630E32A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{367A6BFA-ABD8-4095-92AE-4E01E7847D8E}"
+	ProjectSection(SolutionItems) = preProject
+		badfile.txt = badfile.txt
+		goodfile.txt = goodfile.txt
+		LICENSE.md = LICENSE.md
+		README.md = README.md
+		test.bat = test.bat
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EEFC0A0A-E205-4316-B58D-8F93F630E32A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EEFC0A0A-E205-4316-B58D-8F93F630E32A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EEFC0A0A-E205-4316-B58D-8F93F630E32A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EEFC0A0A-E205-4316-B58D-8F93F630E32A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B62385F4-F9AF-4787-9DF1-25A340CC9D58}
+	EndGlobalSection
+EndGlobal

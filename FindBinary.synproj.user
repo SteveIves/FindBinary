@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <StartAction>Project</StartAction>
+    <StartProgram />
+    <StartURL />
+    <StartArguments>-file badfile.txt -reclen 218 -pause -replace</StartArguments>
+    <StartWorkingDirectory>$(SolutionDir)</StartWorkingDirectory>
+    <RemoteDebugEnabled>False</RemoteDebugEnabled>
+    <RemoteDebugMachine />
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <EnableSQLServerDebugging>False</EnableSQLServerDebugging>
+    <UseVSHostingProcess>False</UseVSHostingProcess>
+    <BreakUnhandled>True</BreakUnhandled>
+    <BreakAll>False</BreakAll>
+    <ErrorList>1,17,18,20,40,53,64,511,528,"Synergex.SynergyDE.EndOfFileException","Synergex.SynergyDE.RecordLockedException","Synergex.SynergyDE.NoFileFoundException","Synergex.SynergyDE.RecordNotFoundException","Synergex.SynergyDE.KeyNotSameException"</ErrorList>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <StartAction>Project</StartAction>
+    <StartProgram />
+    <StartURL />
+    <StartArguments>-file badfile.txt -reclen 218 -pause</StartArguments>
+    <StartWorkingDirectory>$(SolutionDir)</StartWorkingDirectory>
+    <RemoteDebugEnabled>False</RemoteDebugEnabled>
+    <RemoteDebugMachine />
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <EnableSQLServerDebugging>False</EnableSQLServerDebugging>
+    <UseVSHostingProcess>False</UseVSHostingProcess>
+    <BreakUnhandled>True</BreakUnhandled>
+    <BreakAll>False</BreakAll>
+    <ErrorList>1,17,18,20,40,53,64,511,528,"Synergex.SynergyDE.EndOfFileException","Synergex.SynergyDE.RecordLockedException","Synergex.SynergyDE.NoFileFoundException","Synergex.SynergyDE.RecordNotFoundException","Synergex.SynergyDE.KeyNotSameException"</ErrorList>
+  </PropertyGroup>
+</Project>

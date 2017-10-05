@@ -1,0 +1,5 @@
+C:\DEV\PRIVATE\FindBinary\bin\Debug\FindBinary.exe
+C:\DEV\PRIVATE\FindBinary\bin\Debug\FindBinary.pdb
+C:\DEV\PRIVATE\FindBinary\obj\Debug\FindBinary.synproj.CoreCompileInputs.cache
+C:\DEV\PRIVATE\FindBinary\obj\Debug\FindBinary.exe
+C:\DEV\PRIVATE\FindBinary\obj\Debug\FindBinary.pdb

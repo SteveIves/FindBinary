@@ -1,0 +1,284 @@
+import System
+import System.Collections.Generic
+import System.Text
+import System.IO
+
+namespace FindBinary
+
+	;;; <summary>
+    ;;; The main entry point for the application.
+    ;;; </summary>
+    main FindBinary
+
+
+    proc
+
+		data ok, boolean, true
+		data files, @List<string>
+		data badCharacters, int
+
+		if (!CommandLineParser.Parse("file",files))
+		begin
+			;                  --------------------------------------------------------------------------------
+			Console.WriteLine("")
+			Console.WriteLine("Usage:  FindBinary -file <file> [-reclen <reclen>] [-replace] [-quiet] [-pause]")
+			Console.WriteLine("")
+			Console.WriteLine("    -file     Specify the name of the file to process")
+			Console.WriteLine("")
+			Console.WriteLine("    -reclen   Specify the record length of the file")
+			Console.WriteLine("              Only valid when processing a single file")
+			Console.WriteLine("")
+			Console.WriteLine("    -replace  Replace bad characters with space characters")
+			Console.WriteLine("")
+			Console.WriteLine("    -quiet    Don't display anything, just set ERRORLEVEL")
+			Console.WriteLine("")
+			Console.WriteLine("    -pause    Wait for a key press before closing")
+			Console.WriteLine("")
+			;                  --------------------------------------------------------------------------------
+			Console.WriteLine("This utility can be used to check for non-printable and 8-bit characters in a")
+			Console.WriteLine("text file before loading the data into an ISAM file. If you specify the record")
+			Console.WriteLine("length of the file the utility can also validate that the length of all records")
+			Console.WriteLine("is correct, and will also report record numbers and positions in records of any")
+			Console.WriteLine("bad characters. If record length is not specified then only the zero-based")
+			Console.WriteLine("offset of bad characters will be reported.")
+			Console.WriteLine("")
+			;                  --------------------------------------------------------------------------------
+
+			ok = false
+		end
+
+		if (ok && files.Count!=1 )
+		begin
+			Console.WriteLine("ERROR: Specify the name of a file after the -file option")
+			ok = false
+		end
+
+		data ShowOutput = !CommandLineParser.Parse("quiet")
+		data ReplaceMode = CommandLineParser.Parse("replace")
+
+		data reclen, int
+		data clopts, @List<string>
+
+		if (ok && CommandLineParser.Parse("reclen",clopts))
+		begin
+			if (files.Count > 1)
+			begin
+				Console.WriteLine("ERROR: Option -reclen can only be used when processing a single file")
+				ok = false
+			end
+
+			if (ok && (clopts.Count!=1))
+			begin
+				Console.WriteLine("ERROR: Invalid use of -reclen option; specify one record length")
+				ok = false
+			end
+
+			if (ok)
+			begin
+				if (!Int32.TryParse(clopts[0],reclen) || reclen < 1)
+				begin
+					Console.WriteLine("ERROR: Record length must be a positive integer value")
+					ok = false
+				end
+			end
+
+		end
+
+
+		if (ok)
+		begin
+
+			data fileName, string, files[0]
+			data GetCharacterText, @GetCharacterTextDelegate, doGetCharacterText
+			data ReportCharacter, @ReportCharacterDelegate, doReportCharacter
+
+			if (!File.Exists(fileName))
+			begin
+				if (ShowOutput)
+					Console.WriteLine("ERROR: File not found: " + fileName)
+				stop D_EXIT_FAILURE
+			end
+
+			;;Read the file via a stream in 64K chunks
+
+			disposable data fs = File.OpenRead(fileName)
+			data bytes = new byte[65536]
+			data bytesRead, int
+			data totalBytes, int
+			data ix, int
+			data offset, int
+			data recordNumber, int, 1
+			data positionInRecord, int
+
+			disposable data ofs, @FileStream
+			data outFileName, string
+			data spaceByte = Byte.Parse("32")
+
+			if (ReplaceMode)
+			begin
+				outFileName = fileName + ".new"
+				if (File.Exists(outFileName))
+					File.Delete(outFileName)
+				ofs = File.OpenWrite(outFileName)
+			end
+
+			while ((bytesRead = fs.Read(bytes,0,bytes.Length)) > 0)
+			begin
+				;;Iterate through each chunk looking for problem characters
+
+				for ix from 1 thru bytesRead
+				begin
+					offset = totalBytes + ix -1
+					if (reclen) positionInRecord += 1
+
+					using bytes[ix] select
+
+					(13),
+					begin
+						if (!reclen)
+							exit
+						if (positionInRecord!=(reclen+1))
+						begin
+							badCharacters+=1
+							if (ShowOutput)
+								ReportCharacter(fileName,bytes[ix],offset,reclen,recordNumber,positionInRecord,badCharacters)
+							if (ReplaceMode)
+								bytes[ix] = spaceByte
+						end
+					end
+
+					(10),
+					begin
+						if (!reclen)
+							exit
+						if (positionInRecord==(reclen+2)) then
+						begin
+							positionInRecord = 0
+							recordNumber += 1
+						end
+						else
+						begin
+							badCharacters+=1
+							if (ShowOutput)
+								ReportCharacter(fileName,bytes[ix],offset,reclen,recordNumber,positionInRecord,badCharacters)
+							if (ReplaceMode)
+								bytes[ix] = spaceByte
+						end
+					end
+
+					(<32,>127),
+					begin
+						badCharacters+=1
+						if (ShowOutput)
+							ReportCharacter(fileName,bytes[ix],offset,reclen,recordNumber,positionInRecord,badCharacters)
+						if (ReplaceMode)
+							bytes[ix] = spaceByte
+					end
+
+					endusing
+				end
+
+				totalBytes += bytesRead
+
+				if (ReplaceMode)
+					ofs.Write(bytes,0,bytesRead)
+
+			end
+
+			fs.Close()
+
+			if (ReplaceMode)
+			begin
+				ofs.Close()
+				if (badCharacters==0 && File.Exists(outFileName))
+					File.Delete(outFileName)
+			end
+
+		end
+
+		if (CommandLineParser.Parse("pause"))
+		begin
+			Console.WriteLine()
+			Console.Write("Press a key: ")
+			Console.ReadKey()
+			Console.WriteLine()
+		end
+
+		if (ok && badCharacters==0) then
+			stop D_EXIT_SUCCESS
+		else
+			stop D_EXIT_FAILURE
+
+		lambda doReportCharacter(filnam,badchr,offset,reclen,recnum,recpos,badcnt)
+		begin
+			if (badcnt==1)
+			begin
+				Console.WriteLine("")
+				Console.WriteLine("Bad data found in {0}",filnam)
+			end
+
+			data GetCharacterText, @GetCharacterTextDelegate, doGetCharacterText
+
+			if (reclen) then
+				Console.WriteLine(String.Format(" - Character {0:D3} {1} at offset {2} (record {3} position {4})",badchr,GetCharacterText(badchr),offset,recnum,recpos))
+			else
+				Console.WriteLine(" - Character {0:D3} {1} at offset {2}",badchr,GetCharacterText(badchr),offset)
+		end
+
+		lambda doGetCharacterText(chr)
+		begin
+			using chr select
+			(0),    mreturn "<NUL>"
+			(1),    mreturn "<SOH>"
+			(2),    mreturn "<STX>"
+			(3),    mreturn "<ETX>"
+			(4),    mreturn "<EOT>"
+			(5),    mreturn "<ENQ>"
+			(6),    mreturn "<ACK>"
+			(7),    mreturn "<BEL>"
+			(8),    mreturn "<BS> "
+			(9),    mreturn "<HT> "
+			(10),   mreturn "<LF> "
+			(11),   mreturn "<VT>"
+			(12),   mreturn "<FF> "
+			(13),   mreturn "<CR> "
+			(14),   mreturn "<SO> "
+			(15),   mreturn "<SI> "
+			(16),   mreturn "<DLE>"
+			(17),   mreturn "<DC1>"
+			(18),   mreturn "<DC2>"
+			(19),   mreturn "<DC3>"
+			(20),   mreturn "<DC4>"
+			(21),   mreturn "<NAK>"
+			(22),   mreturn "<SYN>"
+			(23),   mreturn "<ETB>"
+			(24),   mreturn "<CAN>"
+			(25),   mreturn "<EM> "
+			(26),   mreturn "<SUB>"
+			(27),   mreturn "<ESC>"
+			(28),   mreturn "<FS> "
+			(29),   mreturn "<GS> "
+			(30),   mreturn "<RS> "
+			(31),   mreturn "<US> "
+			(>127), mreturn String.Format("{0}    ",(char)chr)
+			(),     mreturn "     "
+			endusing
+		end
+
+    endmain
+
+	delegate ReportCharacterDelegate, void
+		filnam, string
+		badchr, byte
+		offset, int
+		reclen, int 
+		recnum, int
+		recpos, int
+		badcnt, int
+	enddelegate
+
+	delegate GetCharacterTextDelegate, string
+		p1, byte
+	enddelegate
+	
+endnamespace
